@@ -42,11 +42,17 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+  console.log(process.env.ACCESS_TOKEN_SECRET);
   if (!email || !password) {
     res.status(400);
     throw new Error("All fields are mandatory!");
   }
   const user = await User.findOne({ email });
+  console.log({
+    username: user.username,
+    email: user.email,
+    id: user._id,
+  });
   if (user && (await bcrypt.compare(password, user.password))) {
     const accessToken = jwt.sign(
       {
