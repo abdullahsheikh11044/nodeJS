@@ -6,7 +6,7 @@ const { default: mongoose } = require("mongoose");
 //@access public
 
 const getContacts = asyncHandler(async (req, res) => {
-  const contact = await Contact.find();
+  const contact = await Contact.find({ user_id: req.user.id });
   res.status(200).json(contact);
   // if (contact === null) {
   //   res.status(404).json({ message: "Contact not found" });
@@ -28,6 +28,7 @@ const createContacts = asyncHandler(async (req, res) => {
   const contact = await Contact.create({
     name,
     email,
+    user_id: req.user.id,
   });
   res.status(201).json(contact);
 });
@@ -55,6 +56,11 @@ const updateContact = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("no contact found");
   }
+
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error("Unauthenticated user");
+  }
   const updatedContact = await Contact.findByIdAndUpdate(
     req.params.id,
     req.body,
@@ -73,7 +79,10 @@ const deleteContact = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("No contact found");
   }
-
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error("Unauthenticated user");
+  }
   await Contact.deleteOne({ _id: req.params.id });
 
   res.status(200).json({ message: "Contact deleted successfully" });
