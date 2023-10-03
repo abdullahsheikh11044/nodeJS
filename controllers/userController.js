@@ -4,6 +4,15 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const dotenv = require("dotenv").config();
 
+//@desc Get all the users
+//@route get /api/users/
+//@access private
+
+const getUsers = asyncHandler(async (req, res) => {
+  const users = await User.find();
+  res.status(200).json(users);
+});
+
 //@desc Register the user
 //@route post /api/users/register
 //@access public
@@ -65,7 +74,12 @@ const loginUser = asyncHandler(async (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "15m" }
     );
-    res.status(200).json({ accessToken });
+    const sanitizedUser = {
+      username: user.username,
+      email: user.email,
+      id: user._id,
+    };
+    res.status(200).json({ accessToken, user: sanitizedUser });
   } else {
     res.status(401);
     throw new Error("email or password is not valid");
@@ -80,4 +94,4 @@ const currentUser = asyncHandler(async (req, res) => {
   res.json(req.user);
 });
 
-module.exports = { registerUser, loginUser, currentUser };
+module.exports = { registerUser, loginUser, currentUser, getUsers };
